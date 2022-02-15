@@ -1,2 +1,3 @@
 # go-actress
-Another actor model approach for Go
+
+Another try on actor models.
