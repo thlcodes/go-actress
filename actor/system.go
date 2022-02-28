@@ -48,7 +48,7 @@ func (s *system) SetLogger(log log.Logger) {
 }
 
 // Spawn will start given actor instance
-func (s *system) Spawn(instance Actor) Ref {
+func (s *system) Spawn(instance Actor, opts ...SpawnOption) Ref {
 	s.log.Trace("Spawn(instance=%T)", instance)
 	s.currIdx++
 	ref := newLocalRef(s.currIdx)
@@ -83,8 +83,9 @@ func (s *system) Stop() {
 }
 
 // Tell sends a message to an actor ref but not wait for a reply
-func (s *system) Tell(whom Ref, what Message, opts ...TalkOptions) error {
+func (s *system) Tell(whom Ref, what Message, opts ...TalkOption) error {
 	s.log.Trace("Tell(whom=%s,what=%T,opts=%T)", whom, what, opts)
+	dropWhenFull := false
 	var ch chan<- *Envelope
 	switch ref := whom.(type) {
 	case *channelRef:
@@ -92,6 +93,7 @@ func (s *system) Tell(whom Ref, what Message, opts ...TalkOptions) error {
 	case *localRef:
 		s.lock.RLock()
 		actor, ok := s.actors[*ref]
+		dropWhenFull = actor.dropWhenFull
 		s.lock.RUnlock()
 		if !ok {
 			return ErrActorNotFound(ref)
@@ -102,12 +104,17 @@ func (s *system) Tell(whom Ref, what Message, opts ...TalkOptions) error {
 	}
 
 	envelope := NewEnvelope(what, opts...)
-	select {
-	case ch <- envelope:
+	if dropWhenFull {
+		select {
+		case ch <- envelope:
 		// yeah!
-	default:
-		// mailbox/channel full
-		return ErrMailboxFull(whom)
+		default:
+			// mailbox/channel full
+			s.log.Warn("%s's mailbox full", whom)
+			return ErrMailboxFull(whom)
+		}
+	} else {
+		ch <- envelope
 	}
 	return nil
 }
@@ -117,7 +124,7 @@ const AskTimeout = 3 * time.Second
 
 // Ask will send a message to an actor ref, intercept the response/error and return
 // it to the sender
-func (s *system) Ask(whom Ref, what Message, opts ...TalkOptions) (reply Message, err error) {
+func (s *system) Ask(whom Ref, what Message, opts ...TalkOption) (reply Message, err error) {
 	s.log.Trace("Ask(whom=%s,what=%T,opts=%T)", whom, what, opts)
 	ch := make(chan *Envelope, 1)
 	cref := newChannelRef(ch)
@@ -133,4 +140,13 @@ func (s *system) Ask(whom Ref, what Message, opts ...TalkOptions) (reply Message
 		return nil, ErrTalkTimeout
 	}
 	return replyEnvelope.msg, nil
+}
+
+// SpawnOptions
+
+func WithMailbox(size uint32, dropping bool) SpawnOption {
+	return func(a *actor) {
+		a.mailbox = make(chan *Envelope, size)
+		a.dropWhenFull = dropping
+	}
 }

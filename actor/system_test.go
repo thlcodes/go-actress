@@ -1,6 +1,7 @@
 package actor_test
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -64,7 +65,7 @@ func TestSystemTell(t *testing.T) {
 	sys := newSystem()
 	defer sys.Stop()
 	a := &ackActor{
-		ack: make(chan ackMsg),
+		ack: make(chan ackMsg, 10),
 	}
 	ref := sys.Spawn(a)
 	require.NotNil(t, ref)
@@ -79,8 +80,8 @@ func TestSystemTell(t *testing.T) {
 loop:
 	for {
 		select {
-		case ack, open := <-a.ack:
-			if !open {
+		case ack, ok := <-a.ack:
+			if !ok {
 				break loop
 			}
 			require.Equal(t, i, ack.i)
@@ -107,4 +108,40 @@ func TestSystemAsk(t *testing.T) {
 		require.IsType(t, ackMsg{}, reply)
 		require.Equal(t, i, reply.(ackMsg).i)
 	}
+}
+
+type countActor struct {
+	cnt uint64
+}
+
+var _ actor.Actor = (*countActor)(nil)
+
+func (ca *countActor) Handle(ctx actor.Context, msg actor.Message) (reply actor.Message, err error) {
+	ca.cnt++
+	return nil, nil
+}
+
+func Benchmark_System(b *testing.B) {
+	b.StopTimer()
+	sys := newSystem()
+	sys.SetLogger(log.NewStdLogger().WithLevel(log.INFO))
+	defer sys.Stop()
+	act := &ackActor{ack: make(chan ackMsg, b.N)}
+	ref := sys.Spawn(act)
+	b.StartTimer()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		for r := range act.ack {
+			_ = r
+		}
+		wg.Done()
+	}()
+	for i := 0; i < b.N; i++ {
+		sys.Tell(ref, nil)
+	}
+	sys.Kill(ref, true)
+	wg.Wait()
+	b.StopTimer()
+	//require.Equal(b, uint64(b.N), act.cnt)
 }

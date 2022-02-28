@@ -61,16 +61,16 @@ func (c *actorContext) Inner() context.Context {
 	return c.Context
 }
 
-func (c *actorContext) Tell(whom Ref, what Message, opts ...TalkOptions) error {
+func (c *actorContext) Tell(whom Ref, what Message, opts ...TalkOption) error {
 	return c.system.Tell(whom, what, opts...)
 }
 
-func (c *actorContext) Ask(whom Ref, what Message, opts ...TalkOptions) (reply Message, err error) {
+func (c *actorContext) Ask(whom Ref, what Message, opts ...TalkOption) (reply Message, err error) {
 	return c.system.Ask(whom, what, opts...)
 }
 
-func (c *actorContext) Spawn(actor Actor) Ref {
-	return c.system.Spawn(actor)
+func (c *actorContext) Spawn(actor Actor, opts ...SpawnOption) Ref {
+	return c.system.Spawn(actor, opts...)
 }
 func (c *actorContext) Kill(ref Ref, graceful bool) error {
 	return c.system.Kill(ref, graceful)

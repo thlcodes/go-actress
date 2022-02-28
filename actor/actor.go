@@ -20,10 +20,11 @@ type Actor interface {
 }
 
 type actor struct {
-	log     log.Logger
-	impl    Actor
-	stopper chan struct{}
-	mailbox chan *Envelope
+	log          log.Logger
+	impl         Actor
+	stopper      chan struct{}
+	mailbox      chan *Envelope
+	dropWhenFull bool
 }
 
 /* Actor impl */

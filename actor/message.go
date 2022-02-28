@@ -6,7 +6,7 @@ type Message interface {
 	message()
 }
 
-type EnvelopeOption = TalkOptions
+type EnvelopeOption = TalkOption
 
 /* implementations */
 

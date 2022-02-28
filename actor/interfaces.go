@@ -1,10 +1,11 @@
 package actor
 
-type TalkOptions func(*Envelope)
+type TalkOption func(*Envelope)
+type SpawnOption func(*actor)
 
 type talker interface {
-	Tell(Ref, Message, ...TalkOptions) error
-	Ask(Ref, Message, ...TalkOptions) (Message, error)
+	Tell(Ref, Message, ...TalkOption) error
+	Ask(Ref, Message, ...TalkOption) (Message, error)
 }
 
 type referencer interface {
@@ -13,6 +14,6 @@ type referencer interface {
 }
 
 type supervisor interface {
-	Spawn(Actor) Ref
+	Spawn(Actor, ...SpawnOption) Ref
 	Kill(Ref, bool) error
 }
