@@ -38,6 +38,7 @@ func (sl *StdLogger) WithLevel(lvl Level) *StdLogger {
 func (sl *StdLogger) WithPrefix(prefix string) *StdLogger {
 	return &StdLogger{
 		prefix: prefix,
+		lvl:    sl.lvl,
 		log:    stdlog.New(sl.log.Writer(), "", sl.log.Flags()),
 	}
 }
@@ -45,6 +46,7 @@ func (sl *StdLogger) WithPrefix(prefix string) *StdLogger {
 func (sl *StdLogger) SubLogger(prefix string) Logger {
 	return &StdLogger{
 		prefix: sl.prefix + "|" + prefix,
+		lvl:    sl.lvl,
 		log:    stdlog.New(sl.log.Writer(), "", sl.log.Flags()),
 	}
 }
@@ -52,6 +54,7 @@ func (sl *StdLogger) SubLogger(prefix string) Logger {
 func (sl *StdLogger) WithOutput(w io.Writer) *StdLogger {
 	return &StdLogger{
 		prefix: sl.prefix,
+		lvl:    sl.lvl,
 		log:    stdlog.New(w, "", sl.log.Flags()),
 	}
 }
@@ -59,6 +62,7 @@ func (sl *StdLogger) WithOutput(w io.Writer) *StdLogger {
 func (sl *StdLogger) WithFlags(flags int) *StdLogger {
 	return &StdLogger{
 		prefix: sl.prefix,
+		lvl:    sl.lvl,
 		log:    stdlog.New(sl.log.Writer(), "", flags),
 	}
 }

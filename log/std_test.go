@@ -14,7 +14,7 @@ func TestStdLogger(t *testing.T) {
 	date := time.Now().Format("2006/01/02")
 	prefix := "LOGTEST"
 	buf := bytes.NewBuffer(nil)
-	lut := log.NewStdLogger().WithOutput(buf).WithPrefix(prefix).WithFlags(stdlog.Ldate | stdlog.Lmsgprefix)
+	lut := log.NewStdLogger().WithOutput(buf).WithPrefix(prefix).WithLevel(log.TRACE).WithFlags(stdlog.Ldate | stdlog.Lmsgprefix)
 
 	// levels prefixing
 	lut.Trace("trace")
@@ -48,8 +48,8 @@ func TestStdLogger(t *testing.T) {
 		date+" "+"[ERROR] [LOGTEST] err\n"+
 		date+" "+"[INFO ] [LOGTEST] logged\n"+
 		date+" "+"[ERROR] [LOGTEST] logged\n"+
-		date+" "+"[INFO ] [LOGTEST#sub1] sublog1\n"+
-		date+" "+"[INFO ] [LOGTEST#sub1#sub2] sublog2\n"+
+		date+" "+"[INFO ] [LOGTEST|sub1] sublog1\n"+
+		date+" "+"[INFO ] [LOGTEST|sub1|sub2] sublog2\n"+
 		date+" "+"[DEBUG] [LOGTEST] int 123 str whatever\n"+
 		date+" "+"[WARN ] [LOGTEST] field A=555\n"+
 		"", buf.String())
