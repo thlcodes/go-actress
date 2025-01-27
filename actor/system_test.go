@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/thlcoes/go-actress/actor"
-	"github.com/thlcoes/go-actress/log"
+	"github.com/thlcodes/go-actress/actor"
+	"github.com/thlcodes/go-actress/log"
 )
 
 func newSystem() (sys actor.System) {
@@ -74,7 +74,7 @@ func TestSystemTell(t *testing.T) {
 	for i := 0; i < n; i++ {
 		require.NoError(t, sys.Tell(ref, ackMsg{i: i}))
 	}
-	sys.Kill(ref, true)
+	_ = sys.Kill(ref, true)
 
 	i := 0
 loop:
@@ -117,11 +117,16 @@ type countActor struct {
 var _ actor.Actor = (*countActor)(nil)
 
 func (ca *countActor) Handle(ctx actor.Context, msg actor.Message) (reply actor.Message, err error) {
-	ca.cnt++
+	switch msg.(type) {
+	case *actor.Stop:
+	// noop
+	default:
+		ca.cnt++
+	}
 	return nil, nil
 }
 
-func Benchmark_System(b *testing.B) {
+func Benchmark_System_Ack(b *testing.B) {
 	b.StopTimer()
 	sys := newSystem()
 	sys.SetLogger(log.NewStdLogger().WithLevel(log.INFO))
@@ -138,10 +143,26 @@ func Benchmark_System(b *testing.B) {
 		wg.Done()
 	}()
 	for i := 0; i < b.N; i++ {
-		sys.Tell(ref, nil)
+		_ = sys.Tell(ref, nil)
 	}
-	sys.Kill(ref, true)
+	_ = sys.Kill(ref, true)
 	wg.Wait()
 	b.StopTimer()
-	//require.Equal(b, uint64(b.N), act.cnt)
+}
+
+func Benchmark_System_Counter(b *testing.B) {
+	b.StopTimer()
+	sys := newSystem()
+	sys.SetLogger(log.NewStdLogger().WithLevel(log.INFO))
+	defer sys.Stop()
+	act := &countActor{}
+	ref := sys.Spawn(act)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := sys.Ask(ref, nil)
+		require.NoError(b, err)
+	}
+	_ = sys.Kill(ref, true)
+	b.StopTimer()
+	require.Equal(b, uint64(b.N), act.cnt)
 }

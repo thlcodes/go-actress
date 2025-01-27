@@ -62,11 +62,11 @@ func (c *actorContext) Inner() context.Context {
 }
 
 func (c *actorContext) Tell(whom Ref, what Message, opts ...TalkOption) error {
-	return c.system.Tell(whom, what, opts...)
+	return c.system.Tell(whom, what, append([]TalkOption{WithSender(c.self)}, opts...)...)
 }
 
 func (c *actorContext) Ask(whom Ref, what Message, opts ...TalkOption) (reply Message, err error) {
-	return c.system.Ask(whom, what, opts...)
+	return c.system.Ask(whom, what, append([]TalkOption{WithSender(c.self)}, opts...)...)
 }
 
 func (c *actorContext) Spawn(actor Actor, opts ...SpawnOption) Ref {

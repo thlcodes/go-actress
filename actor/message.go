@@ -13,6 +13,7 @@ type EnvelopeOption = TalkOption
 type Envelope struct {
 	sender Ref
 	msg    Message
+	isTell bool
 }
 
 func NewEnvelope(msg Message, opts ...EnvelopeOption) *Envelope {
@@ -41,6 +42,10 @@ func WithSender(sender Ref) EnvelopeOption {
 	return func(e *Envelope) {
 		e.sender = sender
 	}
+}
+
+func IsTell(e *Envelope) {
+	e.isTell = true
 }
 
 /* pre defined messages */

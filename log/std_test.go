@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/thlcoes/go-actress/log"
+	"github.com/thlcodes/go-actress/log"
 )
 
 func TestStdLogger(t *testing.T) {

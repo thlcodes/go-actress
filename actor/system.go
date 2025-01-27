@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/thlcoes/go-actress/log"
+	"github.com/thlcodes/go-actress/log"
 )
 
 type System interface {
@@ -84,6 +84,7 @@ func (s *system) Stop() {
 
 // Tell sends a message to an actor ref but not wait for a reply
 func (s *system) Tell(whom Ref, what Message, opts ...TalkOption) error {
+	opts = append(opts, IsTell)
 	s.log.Trace("Tell(whom=%s,what=%T,opts=%T)", whom, what, opts)
 	dropWhenFull := false
 	var ch chan<- *Envelope

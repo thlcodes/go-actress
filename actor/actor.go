@@ -3,7 +3,7 @@ package actor
 import (
 	"time"
 
-	"github.com/thlcoes/go-actress/log"
+	"github.com/thlcodes/go-actress/log"
 )
 
 const (
@@ -75,7 +75,7 @@ loop:
 			}
 			a.log.Debug("> received envelope {%s}", envelope)
 			// handel message with copy of current context extended with sender
-			a.handle(ctx.WithSender(envelope.sender), envelope.msg)
+			a.handle(ctx.WithSender(envelope.sender), envelope)
 			// stop actor when message was the stop signal
 			if _, ok := envelope.msg.(*Stop); ok {
 				a.log.Debug("> got a stop message")
@@ -87,7 +87,7 @@ loop:
 			// this is handled as graceful stop but
 			// all messages left in mailbox will not be
 			// processed
-			a.handle(ctx, &Stop{})
+			a.handle(ctx, NewEnvelope(&Stop{}))
 			break loop
 		case <-a.stopper:
 			a.log.Debug("> received stop message")
@@ -103,16 +103,21 @@ loop:
 
 // handle message, send reply/error to sender if
 // there is one in the contex
-func (a *actor) handle(ctx Context, msg Message) {
+func (a *actor) handle(ctx Context, envelope *Envelope) {
+	msg := envelope.Msg()
 	a.log.Trace("handle(ctx,msg=%T)", msg)
-	reply, err := a.impl.Handle(ctx, msg)
-	if ctx.Sender() != nil {
-		if err != nil {
-			a.log.Debug("> sending error %s to sender %s", err, ctx.Sender())
-			ctx.Tell(ctx.Sender(), &Error{Error: err})
-		} else {
-			a.log.Debug("> sending reply %T to sender %s", reply, ctx.Sender())
-			ctx.Tell(ctx.Sender(), reply)
-		}
+	var err error
+	var reply Message
+	reply, err = a.impl.Handle(ctx, msg)
+	if ctx.Sender() == nil {
+		return
 	}
+	if err != nil {
+		a.log.Debug("> sending error %s to sender %s", err, ctx.Sender())
+		ctx.Tell(ctx.Sender(), &Error{Error: err})
+	} else {
+		a.log.Debug("> sending reply %T to sender %s", reply, ctx.Sender())
+		ctx.Tell(ctx.Sender(), reply)
+	}
+
 }

@@ -1,6 +1,6 @@
-module github.com/thlcoes/go-actress
+module github.com/thlcodes/go-actress
 
-go 1.17
+go 1.23
 
 require github.com/stretchr/testify v1.7.0
 
