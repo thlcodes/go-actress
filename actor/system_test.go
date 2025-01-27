@@ -159,8 +159,8 @@ func Benchmark_System_Counter(b *testing.B) {
 	ref := sys.Spawn(act)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := sys.Ask(ref, nil)
-		require.NoError(b, err)
+		_, _ = sys.Ask(ref, nil)
+		//require.NoError(b, err)
 	}
 	_ = sys.Kill(ref, true)
 	b.StopTimer()

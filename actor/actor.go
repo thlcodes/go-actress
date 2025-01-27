@@ -109,15 +109,15 @@ func (a *actor) handle(ctx Context, envelope *Envelope) {
 	var err error
 	var reply Message
 	reply, err = a.impl.Handle(ctx, msg)
-	if ctx.Sender() == nil {
+	if ctx.Sender() == nil || envelope.isTell {
 		return
 	}
 	if err != nil {
 		a.log.Debug("> sending error %s to sender %s", err, ctx.Sender())
-		ctx.Tell(ctx.Sender(), &Error{Error: err})
+		_ = ctx.Tell(ctx.Sender(), &Error{Error: err})
 	} else {
 		a.log.Debug("> sending reply %T to sender %s", reply, ctx.Sender())
-		ctx.Tell(ctx.Sender(), reply)
+		_ = ctx.Tell(ctx.Sender(), reply)
 	}
 
 }

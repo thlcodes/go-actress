@@ -84,8 +84,12 @@ func (s *system) Stop() {
 
 // Tell sends a message to an actor ref but not wait for a reply
 func (s *system) Tell(whom Ref, what Message, opts ...TalkOption) error {
-	opts = append(opts, IsTell)
+	opts = append(opts, Tell)
 	s.log.Trace("Tell(whom=%s,what=%T,opts=%T)", whom, what, opts)
+	return s.send(whom, what, opts...)
+}
+
+func (s *system) send(whom Ref, what Message, opts ...TalkOption) error {
 	dropWhenFull := false
 	var ch chan<- *Envelope
 	switch ref := whom.(type) {
@@ -129,7 +133,9 @@ func (s *system) Ask(whom Ref, what Message, opts ...TalkOption) (reply Message,
 	s.log.Trace("Ask(whom=%s,what=%T,opts=%T)", whom, what, opts)
 	ch := make(chan *Envelope, 1)
 	cref := newChannelRef(ch)
-	s.Tell(whom, what, WithSender(&cref))
+	if err = s.send(whom, what, WithSender(&cref)); err != nil {
+		return
+	}
 	var replyEnvelope *Envelope
 	var ok bool
 	select {

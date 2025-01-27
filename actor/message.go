@@ -1,6 +1,8 @@
 package actor
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Message interface {
 	message()
@@ -44,7 +46,7 @@ func WithSender(sender Ref) EnvelopeOption {
 	}
 }
 
-func IsTell(e *Envelope) {
+func Tell(e *Envelope) {
 	e.isTell = true
 }
 
