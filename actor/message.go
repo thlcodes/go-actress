@@ -52,6 +52,10 @@ func Tell(e *Envelope) {
 
 /* pre defined messages */
 
+type Start struct {
+	Message
+}
+
 type Stop struct {
 	Message
 }
@@ -59,4 +63,5 @@ type Stop struct {
 type Error struct {
 	Message
 	Error error
+	Code  int
 }

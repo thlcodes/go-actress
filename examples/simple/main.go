@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -84,7 +85,7 @@ func (ca *controlActor) Handle(ctx actor.Context, msg actor.Message) (reply acto
 }
 
 func main() {
-	sys := actor.NewSystem()
+	sys := actor.NewSystem(context.TODO())
 	defer sys.Stop()
 
 	control := &controlActor{close: make(chan struct{})}

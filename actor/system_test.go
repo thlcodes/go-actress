@@ -1,6 +1,7 @@
 package actor_test
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -11,7 +12,7 @@ import (
 )
 
 func newSystem() (sys actor.System) {
-	sys = actor.NewSystem()
+	sys = actor.NewSystem(context.TODO())
 	sys.SetLogger(log.NewStdLogger().WithLevel(log.TRACE).WithPrefix("testsystem"))
 	return
 }
@@ -159,10 +160,10 @@ func Benchmark_System_Counter(b *testing.B) {
 	ref := sys.Spawn(act)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = sys.Ask(ref, nil)
-		//require.NoError(b, err)
+		_, err := sys.Ask(ref, nil)
+		require.NoError(b, err)
 	}
-	_ = sys.Kill(ref, true)
 	b.StopTimer()
+	_ = sys.Kill(ref, true)
 	require.Equal(b, uint64(b.N), act.cnt)
 }

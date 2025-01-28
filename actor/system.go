@@ -31,8 +31,8 @@ type system struct {
 }
 
 // NewSystem will create a new actor system
-func NewSystem() System {
-	ctx, cancel := context.WithCancel(context.Background())
+func NewSystem(ctx context.Context) System {
+	ctx, cancel := context.WithCancel(ctx)
 	return &system{
 		ctx:       ctx,
 		log:       log.NewStdLogger().WithLevel(log.INFO).WithPrefix("System"),
@@ -58,6 +58,7 @@ func (s *system) Spawn(instance Actor, opts ...SpawnOption) Ref {
 	s.actors[ref] = actor
 	s.lock.Unlock()
 	s.log.Debug("Spawned new local actor with ref %#v", ref)
+	_ = s.Tell(&ref, &Start{})
 	return &ref
 }
 
